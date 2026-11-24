@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Arman AI Studio Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0908;--panel:#14110d;--line:#2e2619;--gold:#d4a84b;--gold2:#f0d58a;--mut:#9c8c6e;--txt:#f3e9d2}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:Outfit,system-ui,sans-serif}
+main{padding:20px 18px 110px}
+h1{margin:0 0 18px;font-size:22px;color:var(--gold2);letter-spacing:.3px}
+h2{margin:22px 0 8px;font-size:22px;color:var(--gold2)}
+.tab{display:none}.tab.on{display:block}
+.drop{display:flex;align-items:center;justify-content:center;min-height:150px;border:2px dashed var(--gold);border-radius:18px;overflow:hidden;color:var(--mut);cursor:pointer;text-align:center;padding:8px}
+.drop img{max-width:100%;max-height:260px;border-radius:12px}
+textarea,input[type=text]{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:16px;color:var(--txt);font:inherit;font-size:17px;padding:14px}
+textarea{min-height:120px;resize:vertical}
+details{margin:14px 0;color:var(--mut);font-size:14px}summary{cursor:pointer;margin-bottom:8px}
+.btn{display:block;width:100%;margin-top:16px;padding:16px;border:0;border-radius:16px;font:inherit;font-size:19px;font-weight:700;color:#1b1407;background:linear-gradient(#f0d58a,#d1a54a);text-decoration:none;text-align:center}
+.btn[disabled]{opacity:.55}
+.btn.alt{background:transparent;color:var(--gold2);border:1px solid var(--gold)}
+.out{margin-top:18px;border:1px solid var(--line);background:var(--panel);border-radius:18px;padding:14px}
+.out img{width:100%;border-radius:12px;display:block}
+.msg{margin:0;white-space:pre-line;word-break:break-word;color:var(--mut);line-height:1.5}
+.note{color:var(--mut);font-size:15px;line-height:1.5}
+input[type=range]{width:100%;accent-color:var(--gold)}
+.row{display:flex;justify-content:space-between;color:var(--gold2);font-weight:600}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;background:none;border:0;border-top:3px solid transparent;color:var(--mut);font:inherit;font-size:16px;padding:10px 0 12px}
+nav button span{display:block;font-size:30px}
+nav button.on{color:var(--gold2);border-top-color:var(--gold)}
+:root{padding-top:env(safe-area-inset-top,0px)}
+</style>
+<script>
+function loadTok(){ try { return localStorage.getItem("hf_tok") || ""; } catch (e) { return ""; } }
+function saveToken(){
+  var el=document.getElementById("tok"), msg=document.getElementById("tokMsg");
+  var v=(el.value||"").trim();
+  try { localStorage.setItem("hf_tok", v); } catch (e) {}
+  var ok = loadTok()===v;
+  msg.textContent = ok ? (v ? "Token saved on this phone." : "Token removed.") : "Could not save. Open the page in normal (not private) mode.";
+  alert(msg.textContent);
+}
+</script>
+</head>
+<body>
+<main>
+<h1>Arman AI Studio Pro <small style="font-size:13px;color:#9c8c6e">v5</small></h1>
+
+<section id="t-image" class="tab on">
+  <label class="drop" for="imgIn"><img id="prev" hidden alt=""><span id="dropTxt">Tap to choose your photo</span></label>
+  <input type="file" id="imgIn" accept="image/*" hidden>
+  <h2>Prompt</h2>
+  <textarea id="prompt" placeholder="Tell it what to change. Example: put a lion standing next to me"></textarea>
+  <p class="note">Tip: English prompts give the best results.</p>
+  <h2 style="font-size:18px">Hugging Face token</h2>
+  <input type="text" id="tok" placeholder="hf_..." autocomplete="off">
+  <button type="button" class="btn alt" id="saveTok" onclick="saveToken()" style="margin-top:10px;padding:12px;font-size:17px">Save token</button>
+  <p class="note" id="tokMsg">Optional. A token gives more free tries.</p>
+  <button class="btn" id="go">Edit image</button>
+  <div class="out">
+    <p class="msg" id="status">Your edited image will appear here.</p>
+    <img id="res" hidden alt="Result">
+    <a class="btn" id="open" target="_blank" rel="noopener" hidden>Open image (then hold to save)</a>
+    <button class="btn alt" id="reuse" hidden>Use this result as my photo</button>
+  </div>
+</section>
+
+<section id="t-video" class="tab">
+  <label class="drop" for="vidImg"><span>Tap to choose a photo</span></label>
+  <input type="file" id="vidImg" accept="image/*" hidden>
+  <h2>Prompt</h2>
+  <textarea placeholder="Describe the movement"></textarea>
+  <h2 class="row" style="font-size:17px"><span>Length</span><span id="lenV">10 seconds</span></h2>
+  <input type="range" id="len" min="5" max="40" step="5" value="10">
+  <p class="note">Long videos are made from several short clips joined together.</p>
+  <button class="btn" id="goV">Generate video</button>
+  <div class="out"><p class="msg" id="stV">Video generation is the next step. The Image tab works now.</p></div>
+</section>
+
+<section id="t-motion" class="tab">
+  <label class="drop"><span>Character sheet and reference video: coming in a later step</span></label>
+  <h2>Prompt</h2>
+  <textarea placeholder="Describe the scene"></textarea>
+  <button class="btn" id="goM">Generate motion</button>
+  <div class="out"><p class="msg">Motion control is the next step after video.</p></div>
+</section>
+</main>
+
+<nav>
+  <button class="on" data-t="image"><span>🖼️</span>Image</button>
+  <button data-t="video"><span>🎬</span>Video</button>
+  <button data-t="motion"><span>🎭</span>Motion</button>
+</nav>
+
+<script>
+let ClientLib = null;
+async function getClient() {
+  if (!ClientLib) ClientLib = (await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js")).Client;
+  return ClientLib;
+}
+const $ = id => document.getElementById(id);
+// Free image-edit models on Hugging Face. If one fails, the next is tried.
+const SPACES = ["Qwen/Qwen-Image-Edit", "multimodalart/Qwen-Image-Edit-Fast", "black-forest-labs/FLUX.1-Kontext-Dev"];
+let file = null;
+
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button,.tab").forEach(x => x.classList.remove("on"));
+  b.classList.add("on"); $("t-" + b.dataset.t).classList.add("on");
+});
+$("len").oninput = e => $("lenV").textContent = e.target.value + " seconds";
+$("goV").onclick = () => $("stV").textContent = "Video generation is the next step. The Image tab works now.";
+$("goM").onclick = () => {};
+
+$("tok").value = loadTok();
+if ($("tok").value) $("tokMsg").textContent = "Token saved on this phone.";
+
+function setFile(f) {
+  file = f; $("prev").src = URL.createObjectURL(f); $("prev").hidden = false; $("dropTxt").hidden = true;
+}
+$("imgIn").onchange = e => { if (e.target.files[0]) setFile(e.target.files[0]); };
+
+async function shrink(f) {
+  const bmp = await createImageBitmap(f);
+  const s = Math.min(1, 1024 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas");
+  c.width = Math.round(bmp.width * s); c.height = Math.round(bmp.height * s);
+  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+  const blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.92));
+  return new File([blob], "photo.jpg", { type: "image/jpeg" });
+}
+
+const isImg = p => /image/i.test(p.component || "");
+const isTxt = p => /textbox|text/i.test(p.component || "") && /prompt|instruction|edit/i.test((p.label || "") + (p.parameter_name || ""));
+
+function findUrl(d) {
+  if (!d) return null;
+  if (typeof d === "string") return /^https?:|^data:/.test(d) ? d : null;
+  if (Array.isArray(d)) { for (const x of d) { const u = findUrl(x); if (u) return u; } return null; }
+  if (typeof d === "object") return d.url || findUrl(d.image) || findUrl(d.value) || null;
+  return null;
+}
+
+async function editWith(space, img, text, token) {
+  const Client = await getClient();
+  const app = await Client.connect(space, token ? { hf_token: token } : {});
+  const info = await app.view_api();
+  let name = null, params = null;
+  for (const [n, e] of Object.entries(info.named_endpoints || {})) {
+    const p = e.parameters || [];
+    if (p.some(isImg) && p.some(isTxt)) { name = n; params = p; break; }
+  }
+  if (!name) throw new Error("no usable endpoint");
+  const args = {}; let gi = false, gt = false;
+  for (const p of params) {
+    if (isImg(p) && !gi) { args[p.parameter_name] = img; gi = true; }
+    else if (isTxt(p) && !gt) { args[p.parameter_name] = text; gt = true; }
+    else if (p.parameter_has_default) args[p.parameter_name] = p.parameter_default;
+  }
+  const r = await app.predict(name, args);
+  const url = findUrl(r.data);
+  if (!url) throw new Error("no image returned");
+  return url;
+}
+
+$("go").onclick = async () => {
+  const text = $("prompt").value.trim();
+  if (!file) { $("status").textContent = "Choose your photo first."; return; }
+  if (!text) { $("status").textContent = "Write what you want changed."; return; }
+  const token = $("tok").value.trim() || loadTok();
+  const btn = $("go"); btn.disabled = true;
+  ["res", "open", "reuse"].forEach(i => $(i).hidden = true);
+  let img;
+  try { img = await shrink(file); } catch (e) { img = file; }
+  let done = false; const errs = [];
+  try { await getClient(); } catch (e) {
+    $("status").textContent = "Could not load the AI library. Check your internet and try again.";
+    btn.disabled = false; return;
+  }
+  for (let i = 0; i < SPACES.length && !done; i++) {
+    $("status").textContent = "Editing with model " + (i + 1) + " of " + SPACES.length + ". This can take up to a minute.";
+    try {
+      const url = await editWith(SPACES[i], img, text, token);
+      $("res").src = url; $("res").hidden = false;
+      $("open").href = url; $("open").hidden = false;
+      $("reuse").hidden = false;
+      $("status").textContent = "Done.";
+      done = true;
+    } catch (e) { console.warn(SPACES[i], e); errs.push((i + 1) + ") " + String((e && (e.message || e.detail)) || (typeof e === "string" ? e : JSON.stringify(e))).slice(0, 160)); }
+  }
+  if (!done) $("status").textContent = "All free models are busy or out of tries right now. Wait a few minutes and try again, or add a Hugging Face token above for more free tries.\n\nDetails: " + errs.join(" | ");
+  btn.disabled = false;
+};
+
+$("reuse").onclick = async () => {
+  try {
+    const b = await (await fetch($("res").src)).blob();
+    setFile(new File([b], "result.jpg", { type: b.type || "image/jpeg" }));
+    $("status").textContent = "Result is now your photo. Write the next change.";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (e) { $("status").textContent = "Could not reuse it. Open the image, save it, then choose it again."; }
+};
+</script>
+</body>
+</html>
